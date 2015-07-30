@@ -112,7 +112,7 @@ namespace Natives
 	static cell AMX_NATIVE_CALL HidePlayerForPlayer(AMX *amx, cell *params); // R8
 	static cell AMX_NATIVE_CALL SetPlayerChatBubbleForPlayer(AMX *amx, cell *params); // R10
 	static cell AMX_NATIVE_CALL SetPlayerVersion(AMX *amx, cell *params); // R9
-	static cell AMX_NATIVE_CALL IsPlayerSpawned(AMX *amx, cell *params); // R9
+	static cell AMX_NATIVE_CALL IsPlayerSpawned_YSF(AMX *amx, cell *params); // R9
 	static cell AMX_NATIVE_CALL IsPlayerControllable(AMX *amx, cell *params); // R11
 	static cell AMX_NATIVE_CALL SpawnForWorld(AMX *amx, cell *params); // R10
 	static cell AMX_NATIVE_CALL BroadcastDeath(AMX *amx, cell *params); // R13
@@ -141,7 +141,7 @@ namespace Natives
 	static cell AMX_NATIVE_CALL TogglePlayerOnPlayerList(AMX *amx, cell *params); // R11
 	static cell AMX_NATIVE_CALL IsPlayerToggledOnPlayerList(AMX *amx, cell *params); // R11
 
-	static cell AMX_NATIVE_CALL IsPlayerPaused(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL IsPlayerPaused_YSF(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL GetPlayerPausedTime(AMX *amx, cell *params);
 
 	static cell AMX_NATIVE_CALL GetObjectDrawDistance(AMX *amx, cell *params);

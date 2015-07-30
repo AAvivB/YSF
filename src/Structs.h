@@ -165,6 +165,7 @@ public:
 	WORD			wKeys;					// 0x007A - 0x007C
 	CVector			vecPosition;			// 0x007C - 0x0088
 	float			fQuaternion[4];			// 0x0088 - 0x008C
+	CVector			vecQuaternion;			// 0x008C - 0x0098
 	BYTE			byteHealth;				// 0x0098 - 0x0099
 	BYTE			byteArmour;				// 0x0099 - 0x009A
 	BYTE			byteWeapon;				// 0x009A - 0x009B

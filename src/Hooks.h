@@ -20,6 +20,10 @@ bool Unlock(void *address, size_t len);
 bool memory_compare(const BYTE *data, const BYTE *pattern, const char *mask);
 DWORD FindPattern(char *pattern, char *mask);
 
+extern bool disableSyncBugs;
+extern bool knifeSync;
+extern CSyncData lastSyncData[1000];
+
 void InstallPreHooks();
 void InstallPostHooks();
 

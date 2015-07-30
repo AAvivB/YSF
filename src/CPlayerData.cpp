@@ -60,7 +60,6 @@ CPlayerData::CPlayerData( WORD playerid )
 	bFakePingToggle = false;
 	dwFakePingValue = 0;
 
-	pCustomSyncData = NULL;
 	memset(bCustomPos, false, MAX_PLAYERS);
 	memset(bCustomQuat, false, MAX_PLAYERS);
 	memset(vecCustomPos, NULL, sizeof(CVector));

@@ -19,7 +19,7 @@
 // VERSION INFO
 // ------------
 
-#define PROJECT_NAME		"YSF"
+#define PROJECT_NAME		"YSF-SKY"
 #define PROJECT_VERSION		"R14-3"
 
 // ------------

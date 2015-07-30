@@ -46,6 +46,10 @@ static SubHook logprintf_hook;
 static SubHook query_hook;
 static SubHook CVehicle__Respawn_hook;
 
+bool knifeSync = true;
+bool disableSyncBugs = true;
+CSyncData lastSyncData[1000];
+
 // RakServer::Send hook - Thanks to Gamer_Z
 #ifdef _WIN32
 class CHookRakServer
@@ -308,22 +312,12 @@ static BYTE HOOK_GetPacketID(Packet *p)
 		if (packetId == ID_PLAYER_SYNC)
 		{
 			CSyncData *pSyncData = (CSyncData*)(&p->data[1]);
-			CSyncData *d = pSyncData; // i'm lazy
-			// Fix nightvision and infrared sync
-			if (pSyncData->byteWeapon == 44 || pSyncData->byteWeapon == 45)
-			{
-				pSyncData->wKeys &= ~4;
-				pSyncData->byteWeapon = 0;
-			}
-
-			// Store surfing info because server reset it when player surfing on player object
-			pPlayerData[playerid]->wSurfingInfo = pSyncData->wSurfingInfo;
 
 			if (disableSyncBugs) {
 				// Prevent "ghost shooting" bugs
-				if ((d->byteWeapon >= WEAPON_COLT45 && d->byteWeapon <= WEAPON_SNIPER) || d->byteWeapon == WEAPON_MINIGUN)
+				if ((pSyncData->byteWeapon >= WEAPON_COLT45 && pSyncData->byteWeapon <= WEAPON_SNIPER) || pSyncData->byteWeapon == WEAPON_MINIGUN)
 				{
-					switch (d->wAnimIndex) {
+					switch (pSyncData->wAnimIndex) {
 						// PED_RUN_*
 					case 1222:
 					case 1223:
@@ -478,81 +472,93 @@ static BYTE HOOK_GetPacketID(Packet *p)
 				}
 				else if (pSyncData->byteWeapon == WEAPON_SPRAYCAN || pSyncData->byteWeapon == WEAPON_FIREEXTINGUISHER || pSyncData->byteWeapon == WEAPON_FLAMETHROWER)
 				{
-					if (d->wAnimIndex < 1160 || pSyncData->wAnimIndex > 1167) {
+					if (pSyncData->wAnimIndex < 1160 || pSyncData->wAnimIndex > 1167) {
 						// Only remove action key if holding aim
-						if (d->wKeys & 128) {
-							d->wKeys &= ~1;
+						if (pSyncData->wKeys & 128) {
+							pSyncData->wKeys &= ~1;
 						}
 
 						// Remove fire key
-						d->wKeys &= ~4;
+						pSyncData->wKeys &= ~4;
 
 						// Remove aim key
-						d->wKeys &= ~128;
+						pSyncData->wKeys &= ~128;
 					}
 
 				}
-				else if (d->byteWeapon == WEAPON_GRENADE)
+				else if (pSyncData->byteWeapon == WEAPON_GRENADE)
 				{
-					if (d->wAnimIndex < 644 || d->wAnimIndex > 646) {
-						d->wKeys &= ~1;
+					if (pSyncData->wAnimIndex < 644 || pSyncData->wAnimIndex > 646) {
+						pSyncData->wKeys &= ~1;
 					}
 				}
 			}
-
 			if (pPlayerData[playerid]->syncDataFrozen) {
-				memcpy(d, &pPlayerData[playerid]->pCustomSyncData, sizeof(CSyncData));
+				memcpy(pSyncData, &lastSyncData[playerid], sizeof(CSyncData));
 			}
 			else {
-				memcpy(&pPlayerData[playerid]->pCustomSyncData, d, sizeof(CSyncData));
+				memcpy(&lastSyncData[playerid], pSyncData, sizeof(CSyncData));
+			}
+			// Fix nightvision and infrared sync
+			if (pSyncData->byteWeapon == 44 || pSyncData->byteWeapon == 45)
+			{
+				pSyncData->wKeys &= ~4;
+				pSyncData->byteWeapon = 0;
 			}
 
+			// Store surfing info because server reset it when player surfing on player object
+			pPlayerData[playerid]->wSurfingInfo = pSyncData->wSurfingInfo;
+
 			if (pPlayerData[playerid]->blockKeySync) {
-				d->wKeys = 0;
+				pSyncData->wKeys = 0;
 			}
 
 			if (pPlayerData[playerid]->fakeHealth != 255) {
-				d->byteHealth = pPlayerData[playerid]->fakeHealth;
+				pSyncData->byteHealth = pPlayerData[playerid]->fakeHealth;
 			}
 
 			if (pPlayerData[playerid]->fakeArmour != 255) {
-				d->byteArmour = pPlayerData[playerid]->fakeArmour;
+				pSyncData->byteArmour = pPlayerData[playerid]->fakeArmour;
 			}
 
 			if (pPlayerData[playerid]->fakeQuat != NULL) {
-				d->fQuaternionAngle = pPlayerData[playerid]->fakeQuat->w;
-				d->vecQuaternion.fX = pPlayerData[playerid]->fakeQuat->x;
-				d->vecQuaternion.fY = pPlayerData[playerid]->fakeQuat->y;
-				d->vecQuaternion.fZ = pPlayerData[playerid]->fakeQuat->z;
+				pSyncData->fQuaternion[0] = pPlayerData[playerid]->fakeQuat->w;
+				pSyncData->vecQuaternion.fX = pPlayerData[playerid]->fakeQuat->x;
+				pSyncData->vecQuaternion.fY = pPlayerData[playerid]->fakeQuat->y;
+				pSyncData->vecQuaternion.fZ = pPlayerData[playerid]->fakeQuat->z;
 			}
 
-			if (d->byteWeapon == 44 || d->byteWeapon == 45) {
-				d->wKeys &= ~4;
+			if (pSyncData->byteWeapon == 44 || pSyncData->byteWeapon == 45) {
+				pSyncData->wKeys &= ~4;
 			}
-			else if (d->byteWeapon == 4 && knifeSync == false) {
-				d->wKeys &= ~128;
+			else if (pSyncData->byteWeapon == 4 && knifeSync == false) {
+				pSyncData->wKeys &= ~128;
 			}
 
-			int anim = d->dwAnimationData;
-			BOOL animChanged = (lastAnim[playerid] != anim);
+			int anim = pSyncData->dwAnimationData;
+			bool animChanged = (pPlayerData[playerid]->lastAnim != anim);
 
-			lastAnim[playerid] = anim;
+			pPlayerData[playerid]->lastAnim = anim;
 
-			pPlayerData[playerid]->lastWeapon = d->byteWeapon;
+			pPlayerData[playerid]->lastWeapon = pSyncData->byteWeapon;
 
 		}
 
 		// Stats and weapons update
 		if (packetId == ID_STATS_UPDATE)
 		{
-			pServer->Packet_StatsUpdate(p);
+			if (!pPlayerData[playerid]->syncDataFrozen)
+				pServer->Packet_StatsUpdate(p);
 			return 0xFF;
 		}
 		
-		if (packetId == ID_WEAPONS_UPDATE)
+		if (packetId == ID_WEAPONS_UPDATE && !pPlayerData[playerid]->syncDataFrozen)
 		{
-			CSAMPFunctions::Packet_WeaponsUpdate(p);
-			CCallbackManager::OnPlayerStatsAndWeaponsUpdate(playerid);
+			if (!pPlayerData[playerid]->syncDataFrozen)
+			{
+				CSAMPFunctions::Packet_WeaponsUpdate(p);
+				CCallbackManager::OnPlayerStatsAndWeaponsUpdate(playerid);
+			}
 			return 0xFF;
 		}
 

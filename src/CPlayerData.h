@@ -94,9 +94,6 @@ public:
 	float fBounds[4];
 
 	BYTE byteTeam;
-	
-	// Special shits for store sync data
-	CSyncData *pCustomSyncData;
 
 	// Per-player pos
 	bool bCustomPos[MAX_PLAYERS];
