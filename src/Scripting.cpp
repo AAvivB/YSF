@@ -5998,6 +5998,333 @@ static cell AMX_NATIVE_CALL Natives::SetPickupStreamingEnabled(AMX *amx, cell *p
 }
 #endif
 
+// SKY Plugin
+// native SetLastAnimationData(playerid, data)
+static cell AMX_NATIVE_CALL Natives::SetLastAnimationData(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetLastAnimationData");
+
+	int playerid = (int)params[1];
+	int data = (int)params[2];
+
+	if (playerid < 0 || playerid >= 1000)
+		return 0;
+
+	pPlayerData[playerid]->pCustomSyncData->dwAnimationData = data;
+
+	return 1;
+}
+
+// native SendLastSyncData(playerid, toplayerid, animation = 0)
+static cell AMX_NATIVE_CALL Natives::SendLastSyncData(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(3, "SendLastSyncData");
+
+	int playerid = (int)params[1];
+	int toplayerid = (int)params[2];
+	int animation = (int)params[3];
+	BYTE ps = ID_PLAYER_SYNC;
+	CSyncData* d = pPlayerData[playerid]->pCustomSyncData;
+
+	RakNet::BitStream bs;
+	bs.Write((BYTE)ID_PLAYER_SYNC);
+	bs.Write((WORD)playerid);
+
+	if (d->wUDAnalog) {
+		bs.Write(true);
+		bs.Write((WORD)d->wUDAnalog);
+	}
+	else {
+		bs.Write(false);
+	}
+
+	if (d->wLRAnalog) {
+		bs.Write(true);
+		bs.Write((WORD)d->wLRAnalog);
+	}
+	else {
+		bs.Write(false);
+	}
+
+	bs.Write((WORD)d->wKeys);
+
+	bs.Write(d->vecPosition.fX);
+	bs.Write(d->vecPosition.fY);
+	bs.Write(d->vecPosition.fZ);
+
+	if (pPlayerData[playerid]->fakeQuat != NULL) {
+		bs.Write((bool)(pPlayerData[playerid]->fakeQuat->w<0.0f));
+		bs.Write((bool)(pPlayerData[playerid]->fakeQuat->x<0.0f));
+		bs.Write((bool)(pPlayerData[playerid]->fakeQuat->y<0.0f));
+		bs.Write((bool)(pPlayerData[playerid]->fakeQuat->z<0.0f));
+		bs.Write((unsigned short)(fabs(pPlayerData[playerid]->fakeQuat->x)*65535.0));
+		bs.Write((unsigned short)(fabs(pPlayerData[playerid]->fakeQuat->y)*65535.0));
+		bs.Write((unsigned short)(fabs(pPlayerData[playerid]->fakeQuat->z)*65535.0));
+	}
+	else {
+		bs.Write((bool)(d->fQuaternionAngle<0.0f));
+		bs.Write((bool)(d->vecQuaternion.fX<0.0f));
+		bs.Write((bool)(d->vecQuaternion.fY<0.0f));
+		bs.Write((bool)(d->vecQuaternion.fZ<0.0f));
+		bs.Write((unsigned short)(fabs(d->vecQuaternion.fX)*65535.0));
+		bs.Write((unsigned short)(fabs(d->vecQuaternion.fY)*65535.0));
+		bs.Write((unsigned short)(fabs(d->vecQuaternion.fZ)*65535.0));
+	}
+
+	BYTE health, armour;
+
+	if (pPlayerData[playerid]->fakeHealth != 255) {
+		health = pPlayerData[playerid]->fakeHealth;
+	}
+	else {
+		health = d->byteHealth;
+	}
+
+	if (pPlayerData[playerid]->fakeArmour != 255) {
+		armour = pPlayerData[playerid]->fakeArmour;
+	}
+	else {
+		armour = d->byteArmour;
+	}
+
+	if (health >= 100) {
+		health = 0xF;
+	}
+	else {
+		health /= 7;
+	}
+
+	if (armour >= 100) {
+		armour = 0xF;
+	}
+	else {
+		armour /= 7;
+	}
+
+	bs.Write((BYTE)((health << 4) | (armour)));
+
+	bs.Write(d->byteWeapon);
+	bs.Write(d->byteSpecialAction);
+
+	// Make them appear standing still if paused
+	if (GetTickCount() - pPlayerData[playerid]->dwLastUpdateTick > 2000) {
+		bs.WriteVector(0.0f, 0.0f, 0.0f);
+	}
+	else {
+		bs.WriteVector(d->vecVelocity.fX, d->vecVelocity.fY, d->vecVelocity.fZ);
+	}
+
+	if (d->wSurfingInfo) {
+		bs.Write(true);
+
+		bs.Write(d->wSurfingInfo);
+		bs.Write(d->vecSurfing.fX);
+		bs.Write(d->vecSurfing.fY);
+		bs.Write(d->vecSurfing.fZ);
+	}
+	else {
+		bs.Write(false);
+	}
+
+	// Animations are only sent when they are changed
+	if (animation) {
+		bs.Write(true);
+		bs.Write(animation);
+	}
+	else {
+		bs.Write(false);
+	}
+
+	pRakServer->Send(&bs, HIGH_PRIORITY, RELIABLE_SEQUENCED, 0, pRakServer->GetPlayerIDFromIndex(toplayerid), false);
+
+	return 1;
+}
+
+// native SetFakeArmour(playerid, health);
+static cell AMX_NATIVE_CALL Natives::SetFakeArmour(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetFakeArmour");
+
+	int playerid = (int)params[1];
+	BYTE armour = (BYTE)params[2];
+
+	pPlayerData[playerid]->fakeArmour = armour;
+
+	return 1;
+}
+
+// native SetFakeHealth(playerid, health);
+static cell AMX_NATIVE_CALL Natives::SetFakeHealth(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetFakeHealth");
+
+	int playerid = (int)params[1];
+	BYTE health = (BYTE)params[2];
+
+	pPlayerData[playerid]->fakeHealth = health;
+
+	return 1;
+}
+
+const float MATH_PI = 3.14159265359f;
+const float RAD_TO_DEG = 180.0f / MATH_PI;
+const float DEG_TO_RAD = 1.0f / RAD_TO_DEG;
+
+// native SetFakeFacingAngle(playerid, Float:angle)
+static cell AMX_NATIVE_CALL Natives::SetFakeFacingAngle(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetFakeFacingAngle");
+
+	int playerid = (int)params[1];
+
+	if ((int)params[2] == 0x7FFFFFFF) {
+		pPlayerData[playerid]->fakeQuat = NULL;
+	}
+	else {
+		glm::vec3 vec = glm::vec3(0.0f, 0.0f, 360.0f - amx_ctof(params[2]));
+
+		pPlayerData[playerid]->fakeQuat = new glm::quat(vec * DEG_TO_RAD);
+	}
+
+
+	return 1;
+}
+
+// native SetKnifeSync(toggle);
+static cell AMX_NATIVE_CALL Natives::SetKnifeSync(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(1, "SetKnifeSync");
+
+	knifeSync = (BOOL)params[1];
+
+	return 1;
+}
+
+// native SetDisableSyncBugs(toggle);
+static cell AMX_NATIVE_CALL Natives::SetDisableSyncBugs(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(1, "SetDisableSyncBugs");
+
+	disableSyncBugs = (BOOL)params[1];
+
+	return 1;
+}
+
+// native SetInfiniteAmmoSync(playerid, toggle)
+static cell AMX_NATIVE_CALL Natives::SetInfiniteAmmoSync(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetInfiniteAmmoSync");
+
+	int playerid = (int)params[1];
+	int toggle = (int)params[2];
+
+	pPlayerData[playerid]->infiniteAmmo = toggle ? true : false; // compiler warning shit...
+
+	return 1;
+}
+// native SetKeySyncBlocked(playerid, toggle)
+static cell AMX_NATIVE_CALL Natives::SetKeySyncBlocked(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "SetKeySyncBlocked");
+
+	int playerid = (int)params[1];
+	BOOL toggle = (BOOL)params[2];
+	
+	blockKeySync[playerid] = toggle;
+
+	return 1;
+}
+
+// native ClearAnimationsForPlayer(playerid, forplayerid)
+static cell AMX_NATIVE_CALL Natives::ClearAnimationsForPlayer(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "ClearAnimationsForPlayer");
+
+	int playerid = (int)params[1];
+	int forplayerid = (int)params[2];
+
+	RakNet::BitStream bs;
+	bs.Write((WORD)playerid);
+
+	pRakServer->RPC(&RPC_ClearAnimations, &bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, pRakServer->GetPlayerIDFromIndex(forplayerid), false, false);
+
+	return 1;
+}
+
+// native SendDeath(playerid);
+static cell AMX_NATIVE_CALL Natives::SendDeath(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(1, "SendDeath");
+
+	int playerid = (int)params[1];
+
+	CPlayer *pPlayer = pNetGame->pPlayerPool->pPlayer[playerid];
+
+	pPlayer->byteState = PLAYER_STATE_WASTED;
+
+
+	RakNet::BitStream bs;
+	bs.Write((WORD)playerid);
+
+	pRakServer->RPC(&RPC_DeathBroadcast, &bs, HIGH_PRIORITY, RELIABLE_ORDERED, 0, pRakServer->GetPlayerIDFromIndex(playerid), true, false);
+
+	return 1;
+}
+
+// native FreezeSyncData(playerid, bool:toggle)
+static cell AMX_NATIVE_CALL Natives::FreezeSyncData(AMX* amx, cell* params)
+{
+	if (!pServer)
+		return 0;
+
+	CHECK_PARAMS(2, "FreezeSyncData");
+
+	int playerid = (int)params[1];
+	int toggle = (int)params[2];
+
+	pPlayerData[playerid]->pCustomSyncData->vecVelocity = CVector();
+	pPlayerData[playerid]->pCustomSyncData->byteSpecialAction = 0;
+	pPlayerData[playerid]->pCustomSyncData->wKeys = 0;
+	pPlayerData[playerid]->pCustomSyncData->wUDAnalog = 0;
+	pPlayerData[playerid]->pCustomSyncData->wLRAnalog = 0;
+
+	pPlayerData[playerid]->syncDataFrozen = toggle ? true : false; // compiler warning shit...
+
+	return 1;
+}
 
 // And an array containing the native function-names and the functions specified with them
 AMX_NATIVE_INFO YSINatives [] =
@@ -6323,6 +6650,19 @@ AMX_NATIVE_INFO YSINatives [] =
 #ifdef NEW_PICKUP_SYSTEM
 	{ "SetPickupStreamingEnabled",		Natives::SetPickupStreamingEnabled },
 #endif
+	// SKY Plugin
+	{ "SetFakeHealth", Natives::SetFakeHealth },
+	{ "SetFakeArmour", Natives::SetFakeArmour },
+	{ "SetFakeFacingAngle", Natives::SetFakeFacingAngle },
+	{ "FreezeSyncData", Natives::FreezeSyncData },
+	{ "SetKnifeSync", Natives::SetKnifeSync },
+	{ "SendDeath", Natives::SendDeath },
+	{ "SetLastAnimationData", Natives::SetLastAnimationData },
+	{ "SendLastSyncData", Natives::SendLastSyncData },
+	{ "SetDisableSyncBugs", Natives::SetDisableSyncBugs },
+	{ "ClearAnimationsForPlayer", Natives::ClearAnimationsForPlayer },
+	{ "SetKeySyncBlocked", Natives::SetKeySyncBlocked },
+	{ "SetInfiniteAmmoSync", Natives::SetInfiniteAmmoSync },
 	{ 0,								0 }
 };
 

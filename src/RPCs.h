@@ -63,6 +63,7 @@ extern int RPC_PickedUpPickup;
 extern int RPC_Spawn;
 extern int RPC_Death;
 extern int RPC_DeathBroadcast;
+extern int RPC_ClearAnimations;
 
 void InitRPCs();
 

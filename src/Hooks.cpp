@@ -303,42 +303,12 @@ static BYTE HOOK_GetPacketID(Packet *p)
 		{
 			pPlayerData[playerid]->dwLastUpdateTick = GetTickCount();
 			pPlayerData[playerid]->bEverUpdated = true;
-						
-			/*
-			// Based on JernejL's tutorial - http://forum.sa-mp.com/showthread.php?t=172085
-			DWORD dwDrunkNew = pPlayerPool->dwDrunkLevel[playerid];
-			logprintf("drunknew: %d", dwDrunkNew);
-			if (dwDrunkNew < 100)
-			{
-			
-				RakNet::BitStream bs;
-				bs.Write(2000);
-
-				int drunk = 0x23;
-				pRakServer->RPC(&drunk, &bs, HIGH_PRIORITY, RELIABLE_ORDERED, 2, pRakServer->GetPlayerIDFromIndex(playerid), 0, 0);
-			}
-			else
-			{
-				logprintf("elsegeci: %d", pPlayerData[playerid]->dwLastDrunkLevel != dwDrunkNew);
-				if (pPlayerData[playerid]->dwLastDrunkLevel != dwDrunkNew)
-				{
-					DWORD fps = pPlayerData[playerid]->dwLastDrunkLevel - dwDrunkNew;
-					logprintf("fps: %d", dwDrunkNew);
-					if (fps > 0 && fps < 300)
-					{
-						pPlayerData[playerid]->dwFPS = fps;
-					}
-
-					pPlayerData[playerid]->dwLastDrunkLevel = dwDrunkNew;
-				}
-			}
-			*/
 		}
 
 		if (packetId == ID_PLAYER_SYNC)
 		{
 			CSyncData *pSyncData = (CSyncData*)(&p->data[1]);
-
+			CSyncData *d = pSyncData; // i'm lazy
 			// Fix nightvision and infrared sync
 			if (pSyncData->byteWeapon == 44 || pSyncData->byteWeapon == 45)
 			{
@@ -348,6 +318,228 @@ static BYTE HOOK_GetPacketID(Packet *p)
 
 			// Store surfing info because server reset it when player surfing on player object
 			pPlayerData[playerid]->wSurfingInfo = pSyncData->wSurfingInfo;
+
+			if (disableSyncBugs) {
+				// Prevent "ghost shooting" bugs
+				if ((d->byteWeapon >= WEAPON_COLT45 && d->byteWeapon <= WEAPON_SNIPER) || d->byteWeapon == WEAPON_MINIGUN)
+				{
+					switch (d->wAnimIndex) {
+						// PED_RUN_*
+					case 1222:
+					case 1223:
+					case 1224:
+					case 1225:
+					case 1226:
+					case 1227:
+					case 1228:
+					case 1229:
+					case 1230:
+					case 1231:
+					case 1232:
+					case 1233:
+					case 1234:
+					case 1235:
+					case 1236:
+						// PED_SWAT_RUN
+					case 1249:
+						// PED_WOMAN_(RUN/WALK)_*
+					case 1275:
+					case 1276:
+					case 1277:
+					case 1278:
+					case 1279:
+					case 1280:
+					case 1281:
+					case 1282:
+					case 1283:
+					case 1284:
+					case 1285:
+					case 1286:
+					case 1287:
+						// FAT_FATRUN_ARMED
+					case 459:
+						// MUSCULAR_MUSCLERUN*
+					case 908:
+					case 909:
+						// PED_WEAPON_CROUCH
+					case 1274:
+						// PED_WALK_PLAYER
+					case 1266:
+						// PED_SHOT_PARTIAL(_B)
+					case 1241:
+					case 1242:
+						// Baseball bat
+					case 17:
+					case 18:
+					case 19:
+					case 20:
+					case 21:
+					case 22:
+					case 23:
+					case 24:
+					case 25:
+					case 26:
+					case 27:
+						// Knife
+					case 745:
+					case 746:
+					case 747:
+					case 748:
+					case 749:
+					case 750:
+					case 751:
+					case 752:
+					case 753:
+					case 754:
+					case 755:
+					case 756:
+					case 757:
+					case 758:
+					case 759:
+					case 760:
+						// Sword
+					case 1545:
+					case 1546:
+					case 1547:
+					case 1548:
+					case 1549:
+					case 1550:
+					case 1551:
+					case 1552:
+					case 1553:
+					case 1554:
+						// Fight
+					case 471:
+					case 472:
+					case 473:
+					case 474:
+					case 477:
+					case 478:
+					case 479:
+					case 480:
+					case 481:
+					case 482:
+					case 483:
+					case 484:
+					case 485:
+					case 486:
+					case 487:
+					case 488:
+					case 489:
+					case 490:
+					case 491:
+					case 492:
+					case 493:
+					case 494:
+					case 495:
+					case 496:
+					case 497:
+					case 498:
+					case 499:
+					case 500:
+					case 501:
+					case 502:
+					case 503:
+					case 504:
+					case 505:
+					case 506:
+					case 507:
+					case 1135:
+					case 1136:
+					case 1137:
+					case 1138:
+					case 1139:
+					case 1140:
+					case 1141:
+					case 1142:
+					case 1143:
+					case 1144:
+					case 1145:
+					case 1146:
+					case 1147:
+					case 1148:
+					case 1149:
+					case 1150:
+					case 1151:
+						// Only remove action key if holding aim
+						if (pSyncData->wKeys & 128) {
+							pSyncData->wKeys &= ~1;
+						}
+
+						// Remove fire key
+						pSyncData->wKeys &= ~4;
+
+						// Remove aim key
+						pSyncData->wKeys &= ~128;
+
+						break;
+					}
+
+				}
+				else if (pSyncData->byteWeapon == WEAPON_SPRAYCAN || pSyncData->byteWeapon == WEAPON_FIREEXTINGUISHER || pSyncData->byteWeapon == WEAPON_FLAMETHROWER)
+				{
+					if (d->wAnimIndex < 1160 || pSyncData->wAnimIndex > 1167) {
+						// Only remove action key if holding aim
+						if (d->wKeys & 128) {
+							d->wKeys &= ~1;
+						}
+
+						// Remove fire key
+						d->wKeys &= ~4;
+
+						// Remove aim key
+						d->wKeys &= ~128;
+					}
+
+				}
+				else if (d->byteWeapon == WEAPON_GRENADE)
+				{
+					if (d->wAnimIndex < 644 || d->wAnimIndex > 646) {
+						d->wKeys &= ~1;
+					}
+				}
+			}
+
+			if (pPlayerData[playerid]->syncDataFrozen) {
+				memcpy(d, &pPlayerData[playerid]->pCustomSyncData, sizeof(CSyncData));
+			}
+			else {
+				memcpy(&pPlayerData[playerid]->pCustomSyncData, d, sizeof(CSyncData));
+			}
+
+			if (pPlayerData[playerid]->blockKeySync) {
+				d->wKeys = 0;
+			}
+
+			if (pPlayerData[playerid]->fakeHealth != 255) {
+				d->byteHealth = pPlayerData[playerid]->fakeHealth;
+			}
+
+			if (pPlayerData[playerid]->fakeArmour != 255) {
+				d->byteArmour = pPlayerData[playerid]->fakeArmour;
+			}
+
+			if (pPlayerData[playerid]->fakeQuat != NULL) {
+				d->fQuaternionAngle = pPlayerData[playerid]->fakeQuat->w;
+				d->vecQuaternion.fX = pPlayerData[playerid]->fakeQuat->x;
+				d->vecQuaternion.fY = pPlayerData[playerid]->fakeQuat->y;
+				d->vecQuaternion.fZ = pPlayerData[playerid]->fakeQuat->z;
+			}
+
+			if (d->byteWeapon == 44 || d->byteWeapon == 45) {
+				d->wKeys &= ~4;
+			}
+			else if (d->byteWeapon == 4 && knifeSync == false) {
+				d->wKeys &= ~128;
+			}
+
+			int anim = d->dwAnimationData;
+			BOOL animChanged = (lastAnim[playerid] != anim);
+
+			lastAnim[playerid] = anim;
+
+			pPlayerData[playerid]->lastWeapon = d->byteWeapon;
+
 		}
 
 		// Stats and weapons update
@@ -363,6 +555,52 @@ static BYTE HOOK_GetPacketID(Packet *p)
 			CCallbackManager::OnPlayerStatsAndWeaponsUpdate(playerid);
 			return 0xFF;
 		}
+
+		if (packetId == ID_AIM_SYNC) {
+			CAimSyncData *d = (CAimSyncData*)(&p->data[1]);
+
+			// Fix first-person up/down aim sync
+			if (pPlayerData[playerid]->lastWeapon == 34 || pPlayerData[playerid]->lastWeapon == 35 || pPlayerData[playerid]->lastWeapon == 36 || pPlayerData[playerid]->lastWeapon == 43) {
+				d->fZAim = -d->vecFront.fZ;
+
+				if (d->fZAim > 1.0f) {
+					d->fZAim = 1.0f;
+				}
+				else if (d->fZAim < -1.0f) {
+					d->fZAim = -1.0f;
+				}
+			}
+
+			if (pPlayerData[playerid]->infiniteAmmo) {
+				d->byteWeaponState = 2;
+				d->byteCameraMode = 2;
+			}
+		}
+
+		if (packetId == ID_VEHICLE_SYNC) {
+			CVehicleSyncData *d = (CVehicleSyncData*)(&p->data[1]);
+
+			if (pPlayerData[playerid]->fakeHealth != 255) {
+				d->bytePlayerHealth = pPlayerData[playerid]->fakeHealth;
+			}
+
+			if (pPlayerData[playerid]->fakeArmour != 255) {
+				d->bytePlayerArmour = pPlayerData[playerid]->fakeArmour;
+			}
+		}
+
+		if (packetId == ID_PASSENGER_SYNC) {
+			CPassengerSyncData *d = (CPassengerSyncData*)(&p->data[1]);
+
+			if (pPlayerData[playerid]->fakeHealth != 255) {
+				d->bytePlayerHealth = pPlayerData[playerid]->fakeHealth;
+			}
+
+			if (pPlayerData[playerid]->fakeHealth != 255) {
+				d->bytePlayerArmour = pPlayerData[playerid]->fakeHealth;
+			}
+		}
+
 	}
 	return packetId;
 }

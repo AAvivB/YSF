@@ -111,6 +111,10 @@ using sampgdk::logprintf;
 // Subhook
 #include <subhook/subhook.h>
 
+//glm for SKY
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 // YSF
 #include "Addresses.h"
 #include "amxfunctions.h"

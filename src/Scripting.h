@@ -366,6 +366,19 @@ namespace Natives
 #endif
 	static cell AMX_NATIVE_CALL FIXED_GetWeaponName(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL FIXED_IsPlayerConnectedEx(AMX *amx, cell *params);
+	// SKY Plugin
+	static cell AMX_NATIVE_CALL SetFakeHealth(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetFakeArmour(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetFakeFacingAngle(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL FreezeSyncData(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetKnifeSync(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SendDeath(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetLastAnimationData(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SendLastSyncData(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetDisableSyncBugs(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL ClearAnimationsForPlayer(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetKeySyncBlocked(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL SetInfiniteAmmoSync(AMX *amx, cell *params);
 };
 
 int InitScripting(AMX *amx);

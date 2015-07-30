@@ -35,6 +35,7 @@ int RPC_PickedUpPickup = 0x83;
 int RPC_Spawn = 0x34;
 int RPC_Death = 0x35;
 int RPC_DeathBroadcast = 0xA6;
+int RPC_ClearAnimations = 0x57;
 
 void UpdateScoresPingsIPs(RPCParameters *rpcParams)
 {

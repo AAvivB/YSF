@@ -133,6 +133,15 @@ public:
 	WORD wSurfingInfo;
 	WORD wDialogID;
 
+	BYTE lastWeapon;
+	BYTE fakeHealth;
+	BYTE fakeArmour;
+	glm::quat* fakeQuat;
+	int lastAnim;
+	bool infiniteAmmo : 1;
+	bool syncDataFrozen : 1;
+	bool blockKeySync : 1;;
+
 	bool bObjectsRemoved : 1;
 	bool bWidescreen : 1;
 	bool bUpdateScoresPingsDisabled : 1;
@@ -141,7 +150,7 @@ public:
 	bool bEverUpdated : 1; 
 	bool bHidden : 1;
 	bool bControllable : 1;
-
+	
 private:
 	int m_iTeams[MAX_PLAYERS];
 	int m_iSkins[MAX_PLAYERS];

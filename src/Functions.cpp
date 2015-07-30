@@ -1,4 +1,4 @@
-#include "main.h"
+ï»¿#include "main.h"
 
 CConsole__AddStringVariable_t			CSAMPFunctions::pfn__CConsole__AddStringVariable = NULL;
 CConsole__FindVariable_t				CSAMPFunctions::pfn__CConsole__FindVariable = NULL;
@@ -83,15 +83,13 @@ char* CSAMPFunctions::format_amxstring(AMX *amx, cell *params, int parm, int &le
 {
 	return pfn__format_amxstring(amx, params, parm, len);
 }
-
 void CSAMPFunctions::RespawnVehicle(CVehicle *pVehicle)
 {
-/*
+	/*
 	memset(&pVehicle->vehMatrix, 0, sizeof(MATRIX4X4));
 	memset(&pVehicle->vecVelocity, 0, sizeof(CVector));
 	memset(&pVehicle->vecTurnSpeed, 0, sizeof(CVector));
 	memset(&pVehicle->vehModInfo, 0, sizeof(CVehicleModInfo));
-
 	pVehicle->vehModInfo.iColor1 = -1;
 	pVehicle->vehModInfo.iColor2 = -1;
 	pVehicle->vehMatrix.pos = pVehicle->customSpawn.vecPos;
@@ -113,52 +111,45 @@ void CSAMPFunctions::RespawnVehicle(CVehicle *pVehicle)
 	pVehicle->vehParamEx.lights = -1;
 	pVehicle->vehParamEx.objective = -1;
 	pVehicle->vehOccupiedTick = GetTickCount();
-
 	if (pNetGame && pNetGame->pPlayerPool)
-		pfn__CPlayerPool__HandleVehicleRespawn(pNetGame->pPlayerPool, pVehicle->wVehicleID);
-
+	pfn__CPlayerPool__HandleVehicleRespawn(pNetGame->pPlayerPool, pVehicle->wVehicleID);
 	std::map<int, CVehicleSpawn>::iterator v = pServer->vehicleSpawnData.find(pVehicle->wVehicleID);
 	if(v == pServer->vehicleSpawnData.end())
 	{
-		CCallbackManager::OnVehicleSpawn(pVehicle->wVehicleID);
+	CCallbackManager::OnVehicleSpawn(pVehicle->wVehicleID);
 	}
-	else // Törlés és létrehozás de ez kurvára nem kész itt
-	{			
-		
-		RakNet::BitStream bsVehicleSpawn;
-		
+	else // TÃ¶rlÃ©s Ã©s lÃ©trehozÃ¡s de ez kurvÃ¡ra nem kÃ©sz itt
+	{
 
-		CVehicleModInfo CarModInfo;
-		memset(&CarModInfo,0,sizeof(CVehicleModInfo));
+	RakNet::BitStream bsVehicleSpawn;
 
-		bsVehicleSpawn.Write(pVehicle->wVehicleID);
-		bsVehicleSpawn.Write(spawn.iModelID);
-		bsVehicleSpawn.Write(spawn.vecPos);
-		bsVehicleSpawn.Write(spawn.fRot);
-		bsVehicleSpawn.Write(spawn.iColor1);
-		bsVehicleSpawn.Write(spawn.iColor2);
-		bsVehicleSpawn.Write((float)1000.0f);
-
-		// now add spawn co-ords and rotation
-		bsVehicleSpawn.Write(spawn.vecPos);
-		bsVehicleSpawn.Write(spawn.fRot);
-		bsVehicleSpawn.Write(spawn.iInterior);
-
-		if(pVehicle->szNumberplate[0] == '\0') {
-			bsVehicleSpawn.Write(false);
-		} else {
-			bsVehicleSpawn.Write(true);
-			bsVehicleSpawn.Write((PCHAR)pVehicle->szNumberplate, 9);
-		}
-
-		if(!memcmp((void *)&CarModInfo,(void *)&CarModInfo,sizeof(CVehicleModInfo))) {
-			bsVehicleSpawn.Write(false);
-		} else {
-			bsVehicleSpawn.Write(true);
-			bsVehicleSpawn.Write((PCHAR)&CarModInfo, sizeof(CarModInfo));
-		}
-		
-		pServer->vehicleSpawnData.erase(pVehicle->wVehicleID);
+	CVehicleModInfo CarModInfo;
+	memset(&CarModInfo,0,sizeof(CVehicleModInfo));
+	bsVehicleSpawn.Write(pVehicle->wVehicleID);
+	bsVehicleSpawn.Write(spawn.iModelID);
+	bsVehicleSpawn.Write(spawn.vecPos);
+	bsVehicleSpawn.Write(spawn.fRot);
+	bsVehicleSpawn.Write(spawn.iColor1);
+	bsVehicleSpawn.Write(spawn.iColor2);
+	bsVehicleSpawn.Write((float)1000.0f);
+	// now add spawn co-ords and rotation
+	bsVehicleSpawn.Write(spawn.vecPos);
+	bsVehicleSpawn.Write(spawn.fRot);
+	bsVehicleSpawn.Write(spawn.iInterior);
+	if(pVehicle->szNumberplate[0] == '\0') {
+	bsVehicleSpawn.Write(false);
+	} else {
+	bsVehicleSpawn.Write(true);
+	bsVehicleSpawn.Write((PCHAR)pVehicle->szNumberplate, 9);
 	}
-*/
+	if(!memcmp((void *)&CarModInfo,(void *)&CarModInfo,sizeof(CVehicleModInfo))) {
+	bsVehicleSpawn.Write(false);
+	} else {
+	bsVehicleSpawn.Write(true);
+	bsVehicleSpawn.Write((PCHAR)&CarModInfo, sizeof(CarModInfo));
+	}
+
+	pServer->vehicleSpawnData.erase(pVehicle->wVehicleID);
+	}
+	*/
 }

@@ -69,6 +69,15 @@ CPlayerData::CPlayerData( WORD playerid )
 	dwLastDrunkLevel = 0;
 	wSurfingInfo = 0;
 
+	fakeHealth = 0; // 255?
+	fakeArmour = 0; // 255?
+	lastWeapon = 0;
+	syncDataFrozen = false;
+	infiniteAmmo = false;
+	fakeQuat = NULL;
+	lastAnim = 0;
+	blockKeySync = false;
+
 	bAFKState = false;
 	bEverUpdated = false;
 	dwLastUpdateTick = 0;
