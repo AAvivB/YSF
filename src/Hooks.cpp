@@ -494,7 +494,29 @@ static BYTE HOOK_GetPacketID(Packet *p)
 				}
 			}
 			if (pPlayerData[playerid]->syncDataFrozen) {
-				memcpy(pSyncData, &lastSyncData[playerid], sizeof(CSyncData));
+				// DEBUG, IGNORE ALL OF THESE
+				//memcpy(pSyncData, &lastSyncData[playerid], sizeof(CSyncData));
+				pSyncData->wUDAnalog = lastSyncData->wUDAnalog;
+				pSyncData->wLRAnalog = lastSyncData->wLRAnalog;
+				pSyncData->wKeys = lastSyncData->wKeys;
+				logprintf("wUDAnalog: %d, wLRAnalog: %d, wKeys: %d", pSyncData[playerid].wUDAnalog, pSyncData[playerid].wLRAnalog, pSyncData[playerid].wKeys);
+				//pSyncData->fQuaternion = lastSyncData->fQuaternion;
+				pSyncData->byteHealth = lastSyncData->byteHealth;
+				logprintf("byteHealth: %d", lastSyncData->byteHealth);
+				pSyncData->byteArmour = lastSyncData->byteArmour;
+				logprintf("byteArmour: %d", lastSyncData->byteArmour);
+				pSyncData->byteWeapon = lastSyncData->byteWeapon;
+				logprintf("byteWeapon: %d", lastSyncData->byteWeapon);
+				pSyncData->byteSpecialAction = lastSyncData->byteSpecialAction;
+				logprintf("ByteSpecialAction: %d", lastSyncData->byteSpecialAction);
+				pSyncData->vecVelocity = lastSyncData->vecVelocity;
+				logprintf("vecVelocity: %f Y: %f Z: %f", lastSyncData->vecVelocity.fX, lastSyncData->vecVelocity.fY, lastSyncData->vecVelocity.fZ);
+				//pSyncData->vecSurfing = lastSyncData->vecSurfing; // casuing the crash?
+				logprintf("vecSurfingX: %f Y: %f Z: %f --- WAS NOT SET", lastSyncData->vecSurfing.fX, lastSyncData->vecSurfing.fY, lastSyncData->vecSurfing.fZ);
+				pSyncData->vecPosition = lastSyncData->vecPosition;
+				logprintf("vecPosition:  %f Y: %f Z: %f", lastSyncData->vecPosition.fX, lastSyncData->vecPosition.fY, lastSyncData->vecPosition.fZ);
+				pSyncData->wSurfingInfo = lastSyncData->wSurfingInfo;
+				logprintf("wSurfingInfo: %d", lastSyncData->wSurfingInfo);
 			}
 			else {
 				memcpy(&lastSyncData[playerid], pSyncData, sizeof(CSyncData));

@@ -108,6 +108,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void ** ppData)
 	logprintf("    Server version: %s\n", szVersion);
 	logprintf("    Operating System: " OS_NAME "\n");
 	logprintf("    Built on: " __DATE__ " at "__TIME__ "\n");
+	logprintf("    SKY Plugin by oscar-broman loaded. Imported to YSF plugin by AAvivB\n");
 	logprintf(" ===============================\n");
 	return ret;
 }
